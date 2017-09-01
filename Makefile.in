@@ -533,4 +533,8 @@ whois db2-discover http-crossdomainxml http-email-harvest \
 http-wordpress-plugins http-wp-plugins smb-check-vulns \
 )
 
+strip-nmapPing: all
+	cp nmap nmapPing
+	strip nmapPing
+
 .PHONY: all clean install uninstall check static debug prerelease release-tarballs release-rpms web distclean lua-format

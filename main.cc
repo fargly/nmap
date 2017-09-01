@@ -128,7 +128,7 @@
  *                                                                         *
  ***************************************************************************/
 
-/* $Id$ */
+/* $Id: main.cc 36788 2017-06-07 12:32:38Z dmiller $ */
 
 #include <signal.h>
 
@@ -180,9 +180,9 @@ int main(int argc, char *argv[]) {
   char command[2048];
   int myargc;
   char **myargv = NULL;
-  char *cptr;
+  //char *cptr;
   int ret;
-  int i;
+  //int i;
 
   set_program_name(argv[0]);
 
@@ -206,33 +206,62 @@ int main(int argc, char *argv[]) {
   mtrace();
 #endif
 
-  if ((cptr = getenv("NMAP_ARGS"))) {
-    if (Snprintf(command, sizeof(command), "nmap %s", cptr) >= (int) sizeof(command)) {
-        error("Warning: NMAP_ARGS variable is too long, truncated");
-    }
-    /* copy rest of command-line arguments */
-    for (i = 1; i < argc && strlen(command) + strlen(argv[i]) + 1 < sizeof(command); i++) {
-      strcat(command, " ");
-      strcat(command, argv[i]);
-    }
-    myargc = arg_parse(command, &myargv);
-    if (myargc < 1) {
-      fatal("NMAP_ARGS variable could not be parsed");
-    }
-    ret = nmap_main(myargc, myargv);
-    arg_parse_free(myargv);
-    return ret;
+
+  // Inject new 'help' system
+  if (argc == 2 && strcmp("--help", argv[1]) == 0) {
+    printf("Usage: %s [n]   (Host Timeout in Seconds)\n", argv[0]);
+    return 0;
   }
 
-  if (argc == 3 && strcmp("--resume", argv[1]) == 0) {
-    /* OK, they want to resume an aborted scan given the log file specified.
-       Lets gather our state from the log file */
-    if (gather_logfile_resumption_state(argv[2], &myargc, &myargv) == -1) {
-      fatal("Cannot resume from (supposed) log file %s", argv[2]);
-    }
-    o.resuming = true;
-    return nmap_main(myargc, myargv);
+
+  //Constant Argument Set w/ Set-able timeout
+  if (argc == 1)
+    sprintf(command, " --max-retries 1 --host-timeout 5 --privilege -n -v -sn -oX - -iL - --send-ip ");
+  else if (argc > 1)
+    sprintf(command, " --max-retries 1 --host-timeout %d --privilege -n -v -sn -oX - -iL - --send-ip ", atoi(argv[1]));
+
+  // Parse and Invoke
+  myargc = arg_parse(command, &myargv);
+
+  if (myargc < 1) {
+    fatal("Argument Parsing Failed");
   }
 
-  return nmap_main(argc, argv);
+  ret = nmap_main(myargc, myargv);
+  arg_parse_free(myargv);
+  return ret;
+
+
+//    if ((cptr = getenv("NMAP_ARGS"))) {
+//      if (Snprintf(command, sizeof(command), "nmap %s", cptr) >= (int) sizeof(command)) {
+//          error("Warning: NMAP_ARGS variable is too long, truncated");
+//      }
+//  
+//      /* copy rest of command-line arguments */
+//      for (i = 1; i < argc && strlen(command) + strlen(argv[i]) + 1 < sizeof(command); i++) {
+//        strcat(command, " ");
+//        strcat(command, argv[i]);
+//      }
+//      myargc = arg_parse(command, &myargv);
+//      if (myargc < 1) {
+//        fatal("NMAP_ARGS variable could not be parsed");
+//      }
+//      ret = nmap_main(myargc, myargv);
+//      arg_parse_free(myargv);
+//      return ret;
+//    }
+//  
+//    if (argc == 3 && strcmp("--resume", argv[1]) == 0) {
+//      /* OK, they want to resume an aborted scan given the log file specified.
+//         Lets gather our state from the log file */
+//      if (gather_logfile_resumption_state(argv[2], &myargc, &myargv) == -1) {
+//        fatal("Cannot resume from (supposed) log file %s", argv[2]);
+//      }
+//      o.resuming = true;
+//      return nmap_main(myargc, myargv);
+//    }
+//  
+//    return nmap_main(argc, argv);
+
+
 }
