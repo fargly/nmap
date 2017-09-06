@@ -1,15 +1,26 @@
 #!/usr/bin/env bash
 
+#export CFLAGS="-O2 -fomit-frame-pointer -pipe -fPIC"
+#export CXXFLAGS="-O2 -fomit-frame-pointer -pipe -fPIC"
+
+make distclean 2>/dev/null
+
 ./configure \
   --without-zenmap  \
   --without-nping  \
   --without-openssl  \
-  --without-libpcre  \
+  --with-libpcre=included  \
   --without-libz  \
   --without-libssh2  \
   --without-liblua  \
   --without-ncat  \
   --without-nmap-update
+
+#make -j4 static
+make strip-nmapPing
+
+## From Static Build Post
+##./configure --without-subversion --without-liblua --without-zenmap --with-pcre=/usr --with-libpcap=included --with-libdnet=included --without-ndiff --without-nmap-update --without-ncat --without-liblua --without-nping --without-openssl
 
 ##  --without-libpcap  \
 ##  --without-ndiff \
